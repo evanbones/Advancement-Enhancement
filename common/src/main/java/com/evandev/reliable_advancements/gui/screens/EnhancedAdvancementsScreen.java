@@ -866,7 +866,7 @@ public class EnhancedAdvancementsScreen extends Screen implements ClientAdvancem
         double unzoomedX = (mouseX - bounds.left - PADDING) / this.zoom;
         double unzoomedY = (mouseY - bounds.top - 2 * PADDING) / this.zoom;
 
-        for (EnhancedAdvancementWidget widget : this.selectedTab.getWidgets().values()) {
+        for (EnhancedAdvancementWidget widget : this.selectedTab.getWidgets().sequencedValues().reversed()) {
             if (widget.isMouseOver(this.selectedTab.scrollX, this.selectedTab.scrollY, unzoomedX, unzoomedY)) {
                 return widget;
             }
@@ -1042,7 +1042,7 @@ public class EnhancedAdvancementsScreen extends Screen implements ClientAdvancem
                     double unzoomedMouseX = (mouseX - bounds.left - PADDING) / this.zoom;
                     double unzoomedMouseY = (mouseY - bounds.top - 2 * PADDING) / this.zoom;
 
-                    for (EnhancedAdvancementWidget betterAdvancementEntryScreen : this.selectedTab.getWidgets().values()) {
+                    for (EnhancedAdvancementWidget betterAdvancementEntryScreen : this.selectedTab.getWidgets().sequencedValues().reversed()) {
                         if (betterAdvancementEntryScreen.isMouseOver(this.selectedTab.scrollX, this.selectedTab.scrollY, unzoomedMouseX, unzoomedMouseY)) {
                             if ((EnhancedAdvancementsScreen.canEdit() || betterAdvancementEntryScreen.enhancedDisplayInfo.allowDragging()) && button == 0) {
                                 this.advConnectedToMouse = betterAdvancementEntryScreen;

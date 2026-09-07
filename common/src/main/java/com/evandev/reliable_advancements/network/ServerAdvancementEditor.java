@@ -205,6 +205,7 @@ public class ServerAdvancementEditor {
 
         TabStore store = ServerTabManager.store();
         for (ResourceLocation id : doomed) {
+            deleteEditFile(server, id, player);
             store.markAdvancementDeleted(id, tombstone(server, id, TabStore.STANDALONE_DELETE, advancementToTab.get(id)));
         }
 

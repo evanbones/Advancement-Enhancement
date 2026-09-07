@@ -1,3 +1,4 @@
 ### Fixed
 
-- Fixed issues with the criteria tooltip on lower GUI scales.
+- Fixed widget tooltip order.
+- Fixed duplicate advancements being created when changing IDs.

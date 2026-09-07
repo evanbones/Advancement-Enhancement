@@ -344,7 +344,7 @@ public class AdvancementEditorScreen extends Screen {
 
         if (!isNew && !initialId.equals(finalId)) {
             Services.PLATFORM.sendAdvancementBatch(new AdvancementBatchPayload(
-                    AdvancementBatchPayload.Op.RESET_TO_VANILLA, List.of(initialId)));
+                    AdvancementBatchPayload.Op.DELETE, List.of(initialId)));
         }
 
         EnhancedAdvancementTab owningTab = parentScreen.findTabContaining(finalId);

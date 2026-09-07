@@ -28,7 +28,7 @@ public class EnhancedAdvancementTab {
     public static final Map<ResourceLocation, Tuple<Integer, Integer>> scrollHistory = Maps.newLinkedHashMap();
 
     public final List<BackgroundRule> backgroundRules = new ArrayList<>();
-    protected final Map<ResourceLocation, EnhancedAdvancementWidget> widgets = Maps.newLinkedHashMap();
+    protected final LinkedHashMap<ResourceLocation, EnhancedAdvancementWidget> widgets = Maps.newLinkedHashMap();
 
     private final Minecraft minecraft;
     private final EnhancedAdvancementsScreen screen;
@@ -89,7 +89,7 @@ public class EnhancedAdvancementTab {
         }
     }
 
-    public Map<ResourceLocation, EnhancedAdvancementWidget> getWidgets() {
+    public LinkedHashMap<ResourceLocation, EnhancedAdvancementWidget> getWidgets() {
         return this.widgets;
     }
 
@@ -227,7 +227,7 @@ public class EnhancedAdvancementTab {
         double scaledMouseY = mouseY / zoom;
 
         if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
-            for (EnhancedAdvancementWidget advancementWidget : this.widgets.values()) {
+            for (EnhancedAdvancementWidget advancementWidget : this.widgets.sequencedValues().reversed()) {
                 if (advancementWidget.isMouseOver(this.scrollX, this.scrollY, scaledMouseX, scaledMouseY)) {
                     flag = true;
                     guiGraphics.pose().pushPose();
