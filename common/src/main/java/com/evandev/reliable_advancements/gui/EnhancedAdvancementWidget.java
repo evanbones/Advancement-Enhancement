@@ -38,6 +38,10 @@ public class EnhancedAdvancementWidget implements IAdvancementEntryGui {
     private static final int WIDGET_HEIGHT = 26;
     private static final int TITLE_SIZE = 32;
     private static final int ICON_SIZE = 26;
+    private static final int BOX_TEX_WIDTH = 200;
+    private static final int BOX_TEX_HEIGHT = 26;
+    private static final int CAP_WIDTH = 3;
+    private static final int MIDDLE_TEX_WIDTH = BOX_TEX_WIDTH - CAP_WIDTH * 2;
     public final AdvancementDisplayInfo enhancedDisplayInfo;
     private final AdvancementNode advancementNode;
     private final DisplayInfo displayInfo;
@@ -372,17 +376,14 @@ public class EnhancedAdvancementWidget implements IAdvancementEntryGui {
         boolean drawLeft = left + scrollX + this.x + this.width + ADVANCEMENT_SIZE >= this.advancementTabGui.getScreen().internalWidth;
         String s = this.advancementProgress == null || this.advancementProgress.getProgressText() == null ? null : this.advancementProgress.getProgressText().getString();
         int i = s == null ? 0 : this.minecraft.font.width(s);
+        boolean showCriteria = this.criterionGrid != null && this.criterionGrid.height > 0 && (!ModConfig.get().requiresShift || Screen.hasShiftDown());
         boolean drawTop;
+        int totalContentHeight = this.description.size() * this.minecraft.font.lineHeight + (showCriteria ? this.criterionGrid.height : 0);
 
-        if (!ModConfig.get().requiresShift || Screen.hasShiftDown()) {
-            if (this.criterionGrid.height < this.advancementTabGui.getScreen().height) {
-                drawTop = top + scrollY + this.y + this.description.size() * this.minecraft.font.lineHeight + this.criterionGrid.height + 50 >= this.advancementTabGui.getScreen().height;
-            } else {
-                // Always draw on the bottom if the grid is larger than the screen
-                drawTop = false;
-            }
+        if (showCriteria && this.criterionGrid.height >= this.advancementTabGui.getScreen().height) {
+            drawTop = false;
         } else {
-            drawTop = top + scrollY + this.y + this.description.size() * this.minecraft.font.lineHeight + 50 >= this.advancementTabGui.getScreen().height;
+            drawTop = top + scrollY + this.y + totalContentHeight + 50 >= this.advancementTabGui.getScreen().height;
         }
 
         float percentageObtained = this.advancementProgress == null ? 0.0F : this.advancementProgress.getPercent();
@@ -412,7 +413,6 @@ public class EnhancedAdvancementWidget implements IAdvancementEntryGui {
             stateIcon = AdvancementWidgetType.UNOBTAINED;
         }
 
-        int k = this.width - j;
         RenderSystem.enableBlend();
         int drawY = scrollY + this.y;
         int drawX;
@@ -422,15 +422,10 @@ public class EnhancedAdvancementWidget implements IAdvancementEntryGui {
         } else {
             drawX = scrollX + this.x;
         }
-        int boxHeight;
+        int boxHeight = TITLE_SIZE + this.description.size() * this.minecraft.font.lineHeight + (showCriteria ? this.criterionGrid.height : 0);
 
-        if (!ModConfig.get().requiresShift || Screen.hasShiftDown()) {
-            boxHeight = TITLE_SIZE + this.description.size() * this.minecraft.font.lineHeight + this.criterionGrid.height;
-        } else {
-            boxHeight = TITLE_SIZE + this.description.size() * this.minecraft.font.lineHeight;
-        }
-
-        if (!this.description.isEmpty()) {
+        boolean hasBody = !this.description.isEmpty() || showCriteria;
+        if (hasBody) {
             if (drawTop) {
                 guiGraphics.blitSprite(TITLE_BOX_SPRITE, drawX, drawY + ADVANCEMENT_SIZE - boxHeight, this.width, boxHeight);
             } else {
@@ -438,10 +433,7 @@ public class EnhancedAdvancementWidget implements IAdvancementEntryGui {
             }
         }
 
-        RenderUtil.setColor(enhancedDisplayInfo.getTitleColor(stateTitleLeft));
-        guiGraphics.blitSprite(stateTitleLeft.boxSprite(), 200, 26, 0, 0, drawX, drawY, j, WIDGET_HEIGHT);
-        RenderUtil.setColor(enhancedDisplayInfo.getTitleColor(stateTitleRight));
-        guiGraphics.blitSprite(stateTitleRight.boxSprite(), 200, 26, 200 - k, 0, drawX + j, drawY, k, WIDGET_HEIGHT);
+        this.drawTitleBox(guiGraphics, drawX, drawY, this.width, j, stateTitleLeft, stateTitleRight);
 
         RenderUtil.setColor(enhancedDisplayInfo.getIconColor(stateIcon));
         guiGraphics.blitSprite(stateIcon.frameSprite(this.displayInfo.getType()), scrollX + this.x + 3, scrollY + this.y, ICON_SIZE, ICON_SIZE);
@@ -470,7 +462,7 @@ public class EnhancedAdvancementWidget implements IAdvancementEntryGui {
         for (int k1 = 0; k1 < this.description.size(); ++k1) {
             guiGraphics.drawString(this.minecraft.font, this.description.get(k1), drawX + 5, yOffset + k1 * this.minecraft.font.lineHeight, -5592406, false);
         }
-        if (this.criterionGrid != null && !ModConfig.get().requiresShift || Screen.hasShiftDown()) {
+        if (showCriteria) {
             int xOffset = drawX + 5;
             yOffset += this.description.size() * this.minecraft.font.lineHeight;
             for (int colIndex = 0; colIndex < this.criterionGrid.columns.size(); colIndex++) {
@@ -483,6 +475,45 @@ public class EnhancedAdvancementWidget implements IAdvancementEntryGui {
         }
 
         guiGraphics.renderFakeItem(this.displayInfo.getIcon(), scrollX + this.x + 8, scrollY + this.y + 5);
+    }
+
+    private void drawTitleBox(GuiGraphics guiGraphics, int x, int y, int width, int j,
+                              AdvancementWidgetType stateLeft, AdvancementWidgetType stateRight) {
+        int k = width - j;
+        if (stateLeft == stateRight) {
+            RenderUtil.setColor(enhancedDisplayInfo.getTitleColor(stateLeft));
+            drawBoxSection(guiGraphics, stateLeft.boxSprite(), x, y, width, true, true);
+        } else {
+            RenderUtil.setColor(enhancedDisplayInfo.getTitleColor(stateLeft));
+            drawBoxSection(guiGraphics, stateLeft.boxSprite(), x, y, j, true, false);
+            RenderUtil.setColor(enhancedDisplayInfo.getTitleColor(stateRight));
+            drawBoxSection(guiGraphics, stateRight.boxSprite(), x + j, y, k, false, true);
+        }
+    }
+
+    private void drawBoxSection(GuiGraphics guiGraphics, ResourceLocation sprite, int x, int y, int sectionWidth,
+                                boolean hasLeftCap, boolean hasRightCap) {
+        if (sectionWidth <= 0) return;
+
+        int leftCapWidth = hasLeftCap ? Math.min(CAP_WIDTH, sectionWidth) : 0;
+        int rightCapWidth = hasRightCap ? Math.min(CAP_WIDTH, sectionWidth - leftCapWidth) : 0;
+        int middleWidth = sectionWidth - leftCapWidth - rightCapWidth;
+
+        if (leftCapWidth > 0) {
+            guiGraphics.blitSprite(sprite, BOX_TEX_WIDTH, BOX_TEX_HEIGHT, 0, 0, x, y, leftCapWidth, BOX_TEX_HEIGHT);
+        }
+
+        int middleX = x + leftCapWidth;
+        for (int offset = 0; offset < middleWidth; offset += MIDDLE_TEX_WIDTH) {
+            int chunk = Math.min(MIDDLE_TEX_WIDTH, middleWidth - offset);
+            guiGraphics.blitSprite(sprite, BOX_TEX_WIDTH, BOX_TEX_HEIGHT, CAP_WIDTH, 0, middleX + offset, y, chunk, BOX_TEX_HEIGHT);
+        }
+
+        if (rightCapWidth > 0) {
+            int rightCapX = x + sectionWidth - rightCapWidth;
+            int uOffset = BOX_TEX_WIDTH - rightCapWidth;
+            guiGraphics.blitSprite(sprite, BOX_TEX_WIDTH, BOX_TEX_HEIGHT, uOffset, 0, rightCapX, y, rightCapWidth, BOX_TEX_HEIGHT);
+        }
     }
 
     public boolean isMouseOver(double scrollX, double scrollY, double mouseX, double mouseY) {
